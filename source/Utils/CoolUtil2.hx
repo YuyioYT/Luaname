@@ -1,7 +1,7 @@
 package Utils;
 
 import flixel.util.FlxColor;
-
+import flixel.util.FlxSave;
 using StringTools;
 
 
@@ -18,4 +18,11 @@ class CoolUtil2 {
 			colorNum = FlxColor.fromString('#$color');
 		return colorNum != null ? colorNum : FlxColor.WHITE;
     }
+
+	public static function getSavePath():String {
+		var company:String = FlxG.stage.application.meta.get('company');
+		// #if (flixel < "5.0.0") return company; #else
+		return '${company}/${FlxSave.validate(FlxG.stage.application.meta.get('file'))}';
+		// #end
+	}
 }

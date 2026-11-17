@@ -3,9 +3,7 @@ package Utils;
 import Sprites.ModchartSprite;
 import funkin.backend.MusicBeatState;
 import funkin.play.PlayState;
-import flixel.FlxG;
-import flixel.FlxSprite;
-import funkin.util.Paths;
+
 import openfl.display.BlendMode;
 
 using StringTools;

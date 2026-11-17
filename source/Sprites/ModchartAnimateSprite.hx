@@ -6,7 +6,7 @@ import flixel.graphics.FlxGraphic;
 
 ///////////////// PORT BY YUYIO, CREDITS TO PSYCH ENGINE 
 
-class ModchartAnimateSprite extends FlxAnimate
+class ModchartAnimateSprite extends FunkinSprite
 {
 	public var animOffsets:StringMap<String, Array<Float>> = new StringMap<String, Array<Float>>();
 	public function new(?x:Float = 0, ?y:Float = 0)

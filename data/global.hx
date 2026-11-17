@@ -1,14 +1,4 @@
 import funkin.backend.MusicBeatState;
-import funkin.play.PlayState;
-import flixel.FlxG;
-import flixel.FlxObject;
-import flixel.FlxSprite;
-import flixel.math.FlxAxes;
-import flixel.util.FlxColor;
-import flixel.graphics.FlxGraphic;
-import funkin.util.CoolUtil;
-import funkin.util.Paths;
-import funkin.backend.Options;
 import haxe.ds.StringMap;
 import haxe.Reflect;
 
