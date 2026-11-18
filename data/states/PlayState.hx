@@ -30,8 +30,6 @@ function stopped(r:Dynamic):Bool {
 	return v == FunkinLua.Function_Stop || v == FunkinLua.Function_StopAll;
 }
 
-// Llama a onStartCountdown en TODOS los Lua y dice si alguno devolvio Function_Stop.
-// (callOnLuas se queda solo con el ultimo valor no nulo, y otro Lua podia pisar el Function_Stop.)
 function luaStops(name:String):Bool {
 	var stop:Bool = false;
 	if (luaArray == null) return false;
@@ -44,7 +42,6 @@ function luaStops(name:String):Bool {
 
 var __blockLogged:Bool = false;
 
-// El recorrido de notas activas de postUpdate (onSpawnNote) solo hace falta si algun Lua define esos callbacks.
 var __wantsSpawn:Bool = true;
 var __spawnScanLen:Int = -1;
 function __rescanSpawn() {
@@ -54,11 +51,10 @@ function __rescanSpawn() {
 		if (!script.closed && (script.hasFunction('onSpawnNote') || script.hasFunction('onSpawnNotePost'))) { __wantsSpawn = true; break; }
 }
 
-// Mantiene parada la cuenta atras y la cancion mientras un Lua pidio Function_Stop en onStartCountdown.
 function __blockNow() {
 	if (!__blockLogged) {
 		__blockLogged = true;
-		trace('[Lua] onStartCountdown devolvio Function_Stop: cuenta atras y cancion bloqueadas');
+		trace('[Lua] onStartCountdown return Function_Stop: the song stopped');
 	}
 	if (startTimer != null && startTimer.active) startTimer.cancel();
 	startedCountdown = false;
@@ -316,7 +312,6 @@ function beatHit(curBeat:Int) {
 function onStartCountdown(e) {
 	if (!__luaReady) { __deferredCountdown = true; e.cancel(); return; }
 	if (luaStops('onStartCountdown')) {
-		// si el Lua ya arranco la cuenta atras dentro del propio callback (startDialogue/startCountdown), no se bloquea
 		if (!startedCountdown) FunkinLua.countdownBlocked = true;
 		e.cancel();
 	}
@@ -398,7 +393,6 @@ function onSubstateClose(e) {
 
 function onGameOver(e) {
 	if (stopped(fwd('onGameOver'))) { e.cancel(); return; }
-	// engancha data/gameovers/lua_gameover.hx para onGameOverConfirm
 	if (GameOverSubstate.script == null || GameOverSubstate.script == '')
 		GameOverSubstate.script = 'data/gameovers/lua_gameover';
 }
