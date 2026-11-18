@@ -48,7 +48,7 @@ class LuaUtils {
         return getState();
     }
 
-    function loadFrames(spr:FlxSprite, image:String, spriteType:String)
+    public static function loadFrames(spr:FlxSprite, image:String, spriteType:String)
 	{
 		if (spriteType == null) spriteType = 'sparrow';
 		switch(spriteType.toLowerCase().replace(' ', ''))

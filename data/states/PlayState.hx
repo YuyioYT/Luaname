@@ -24,8 +24,49 @@ var __luaReady:Bool = false;
 var __deferredCountdown:Bool = false;
 var __seenCb:Array<String> = [];
 
-function stopped(r:Dynamic):Bool
-	return r == FunkinLua.Function_Stop || r == FunkinLua.Function_StopAll;
+function stopped(r:Dynamic):Bool {
+	if (r == null) return false;
+	var v:String = Std.string(r);
+	return v == FunkinLua.Function_Stop || v == FunkinLua.Function_StopAll;
+}
+
+// Llama a onStartCountdown en TODOS los Lua y dice si alguno devolvio Function_Stop.
+// (callOnLuas se queda solo con el ultimo valor no nulo, y otro Lua podia pisar el Function_Stop.)
+function luaStops(name:String):Bool {
+	var stop:Bool = false;
+	if (luaArray == null) return false;
+	for (script in luaArray.copy()) {
+		if (script.closed) continue;
+		if (stopped(script.call(name, []))) stop = true;
+	}
+	return stop;
+}
+
+var __blockLogged:Bool = false;
+
+// El recorrido de notas activas de postUpdate (onSpawnNote) solo hace falta si algun Lua define esos callbacks.
+var __wantsSpawn:Bool = true;
+var __spawnScanLen:Int = -1;
+function __rescanSpawn() {
+	__spawnScanLen = luaArray.length;
+	__wantsSpawn = false;
+	for (script in luaArray)
+		if (!script.closed && (script.hasFunction('onSpawnNote') || script.hasFunction('onSpawnNotePost'))) { __wantsSpawn = true; break; }
+}
+
+// Mantiene parada la cuenta atras y la cancion mientras un Lua pidio Function_Stop en onStartCountdown.
+function __blockNow() {
+	if (!__blockLogged) {
+		__blockLogged = true;
+		trace('[Lua] onStartCountdown devolvio Function_Stop: cuenta atras y cancion bloqueadas');
+	}
+	if (startTimer != null && startTimer.active) startTimer.cancel();
+	startedCountdown = false;
+	if (inst != null && inst.playing) inst.stop();
+	if (vocals != null && vocals.playing) vocals.stop();
+	for (sl in strumLines.members)
+		if (sl.vocals != null && sl.vocals.playing) sl.vocals.stop();
+}
 
 
 function fwd(name:String, ?args:Array<Dynamic>):Dynamic {
@@ -48,6 +89,8 @@ function fwdEvent(name:String, e:Dynamic) {
 }
 
 function create() {
+	FunkinLua.countdownBlocked = false;
+	__blockLogged = false;
 	camOther = new FlxCamera();
 	camOther.bgColor = 0x00000000;
 	FlxG.cameras.add(camOther, false);
@@ -106,7 +149,9 @@ function postCreate() {
 
 	if (__deferredCountdown) {
 		__deferredCountdown = false;
-		if (!stopped(fwd('onStartCountdown'))) startCountdown();
+		if (luaStops('onStartCountdown')) {
+			if (!startedCountdown) FunkinLua.countdownBlocked = true;
+		} else startCountdown();
 	}
 }
 
@@ -212,6 +257,7 @@ public function addTextToDebug(text:String, color:FlxColor) {
 //CALLBACKS
 
 function update(elapsed:Float) {
+	if (FunkinLua.countdownBlocked) __blockNow();
 	callOnLuas('onUpdate', [elapsed]);
 }
 
@@ -235,6 +281,8 @@ function postUpdate(elapsed:Float) {
 		__hitNow[k] = false;
 	}
 
+	if (luaArray != null && luaArray.length != __spawnScanLen) __rescanSpawn();
+	if (__wantsSpawn) {
 	var t = Conductor.songPosition;
 	for (sl in strumLines.members) {
 		var g = sl.notes;
@@ -252,6 +300,7 @@ function postUpdate(elapsed:Float) {
 			callOnLuas('onSpawnNotePost', a);
 		}
 	}
+	}
 }
 
 function stepHit(curStep:Int) {
@@ -266,10 +315,15 @@ function beatHit(curBeat:Int) {
 
 function onStartCountdown(e) {
 	if (!__luaReady) { __deferredCountdown = true; e.cancel(); return; }
-	if (stopped(fwd('onStartCountdown'))) e.cancel();
+	if (luaStops('onStartCountdown')) {
+		// si el Lua ya arranco la cuenta atras dentro del propio callback (startDialogue/startCountdown), no se bloquea
+		if (!startedCountdown) FunkinLua.countdownBlocked = true;
+		e.cancel();
+	}
 }
 
 function onCountdown(e) {
+	if (FunkinLua.countdownBlocked) { e.cancel(); __blockNow(); return; }
 	if (e.swagCounter == 0) fwd('onCountdownStarted');
 	fwd('onCountdownTick', [e.swagCounter]);
 }
@@ -374,6 +428,7 @@ function onPreGenerateStrums(e) fwdEvent('onPreGenerateStrums', e);
 function onPostGenerateStrums(e) fwdEvent('onPostGenerateStrums', e);
 
 function destroy() {
+	FunkinLua.countdownBlocked = false;
 	if (luaArray != null) {
 		for (lua in luaArray.copy()) {
 			lua.call('onDestroy', []);
