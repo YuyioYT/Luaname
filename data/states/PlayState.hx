@@ -1,5 +1,6 @@
 import lua.FunkinLua;
 import lua.DebugLuaText;
+import lua.helpers.LuaVideos;
 import lua.helpers.LuaCombo;
 import lua.helpers.LuaHaxe;
 import lua.helpers.LuaEffects;
@@ -94,8 +95,8 @@ function fwdEvent(name:String, e:Dynamic) {
 
 function create() {
 	FunkinLua.countdownBlocked = false;
-	FunkinLua.videoSprite = null;
-	FunkinLua.videoName = null;
+	LuaVideos.videoSprite = null;
+	LuaVideos.videoName = null;
 	FunkinLua.gamePaused = false;
 	__luaFrozen = false;
 	__frozenTweens = [];
@@ -789,9 +790,9 @@ function __pollLuaEvents() {
 function update(elapsed:Float) {
 	if (FunkinLua.countdownBlocked) __blockNow();
 
-	if (FunkinLua.videoSprite != null && FunkinLua.videoCanSkip && FlxG.keys.pressed.ENTER) {
+	if (LuaVideos.videoSprite != null && LuaVideos.videoCanSkip && FlxG.keys.pressed.ENTER) {
 		__skipHold += elapsed;
-		if (__skipHold >= 1) { __skipHold = 0; FunkinLua.stopVideo('skipping'); }
+		if (__skipHold >= 1) { __skipHold = 0; LuaVideos.stopVideo('skipping'); }
 	} else __skipHold = 0;
 
 	__pollLuaEvents();
@@ -946,9 +947,9 @@ function __isGameAudio(s:Dynamic):Bool {
 	return false;
 }
 
-function __videoPause() FunkinLua.pauseVideo();
+function __videoPause() LuaVideos.pauseVideo();
 
-function __videoResume() FunkinLua.resumeVideo();
+function __videoResume() LuaVideos.resumeVideo();
 
 function __freezeLua() {
 	if (__luaFrozen) return;
@@ -1007,7 +1008,7 @@ function onSubstateOpen(e) {
 	if (e.substate is DialogueCutscene) fwd('onNextDialogue', [0]);
 	else if (e.substate is PauseSubState) {
 		if (!__luaFrozen) { FunkinLua.gamePaused = true; __videoPause(); }
-		if (FunkinLua.videoSprite != null) FunkinLua.videoSprite.visible = true;
+		if (LuaVideos.videoSprite != null) LuaVideos.videoSprite.visible = true;
 	}
 }
 
@@ -1056,8 +1057,8 @@ function onPostGenerateStrums(e) fwdEvent('onPostGenerateStrums', e);
 function destroy() {
 	LuaEffects.reset();
 	FunkinLua.countdownBlocked = false;
-	FunkinLua.videoSprite = null;
-	FunkinLua.videoName = null;
+	LuaVideos.videoSprite = null;
+	LuaVideos.videoName = null;
 	FunkinLua.gamePaused = false;
 	__luaFrozen = false;
 	__frozenTweens = [];

@@ -95,6 +95,37 @@ class LuaUtils {
 		return group;
 	}
 
+	public static function addAnimByIndices(obj:String, name:String, prefix:String, indices:Any = null, framerate:Float = 24, loop:Bool = false)
+	{
+		var obj:FlxSprite = cast LuaUtils.getObjectDirectly(obj);
+		if(obj != null && obj.animation != null)
+		{
+			if(indices == null)
+				indices = [0];
+			else if(Std.isOfType(indices, String))
+			{
+				var strIndices:Array<String> = cast (indices, String).trim().split(',');
+				var myIndices:Array<Int> = [];
+				for (i in 0...strIndices.length) {
+					myIndices.push(Std.parseInt(strIndices[i]));
+				}
+				indices = myIndices;
+			}
+
+			if(prefix != null) obj.animation.addByIndices(name, prefix, indices, '', framerate, loop);
+			else obj.animation.add(name, indices, framerate, loop);
+
+			if(obj.animation.curAnim == null)
+			{
+				var dyn:Dynamic = cast obj;
+				if(dyn.playAnim != null) dyn.playAnim(name, true);
+				else dyn.animation.play(name, true);
+			}
+			return true;
+		}
+		return false;
+	}
+
     public static function getTweenEaseByString(?ease:String = '') {
 		if (ease == null) ease = '';
 		switch(ease.toLowerCase().trim()) {
@@ -204,4 +235,7 @@ class LuaUtils {
 		if (camera == null || !Std.isOfType(camera, FlxCamera)) camera = PlayState.instance.camGame;
 		return camera;
 	}
+
+	public static function getLuaObject(tag:String, text:Bool=true):FlxSprite
+		return variables.get(tag);
 }

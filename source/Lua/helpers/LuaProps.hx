@@ -15,30 +15,6 @@ using StringTools;
 ////////More conversions
 class LuaProps {
 
-	public static function getLuaObject(funk:Dynamic, tag:String):Dynamic return LuaProps.resolveObject(funk, tag);
-
-	public static function resolveObject(funk:Dynamic, name:String):Dynamic {
-		if (name == null) return null;
-		var o:Dynamic = LuaProps.lookupObject(funk, name);
-		if (o != null) return o;
-		var game:Dynamic = PlayState.instance;
-		if (game != null) {
-			var key:String = LuaProps.propAliases.exists(name) ? LuaProps.propAliases.get(name) : name;
-			try {
-				var p:Dynamic = Reflect.getProperty(game, key);
-				if (p != null && Std.isOfType(p, FlxBasic)) return p;
-			} catch (e:Dynamic) {}
-			if (name.indexOf('.') >= 0 || name.indexOf('[') >= 0) {
-				try {
-					var q:Dynamic = LuaProps.getProperty(funk, name);
-					if (q != null && !Std.isOfType(q, String) && !Std.isOfType(q, Float) && !Std.isOfType(q, Bool)) return q;
-				} catch (e:Dynamic) {}
-			}
-		}
-		try { o = LuaUtils.getObjectDirectly(name); } catch (e:Dynamic) {}
-		return o;
-	}
-
 	public static function borderStyleOf(funk:Dynamic, name:String):Dynamic {
 		try {
 			var e:Dynamic = Type.resolveEnum('flixel.text.FlxTextBorderStyle');
@@ -67,33 +43,6 @@ class LuaProps {
 	}
 
 	public static function isMap(funk:Dynamic, o:Dynamic):Bool return o != null && Reflect.isFunction(Reflect.field(o, 'exists')) && Reflect.isFunction(Reflect.field(o, 'keys'));
-
-	public static function addAnimByIndices(funk:Dynamic, obj:String, name:String, prefix:String, indices:Dynamic, framerate:Float, loop:Bool):Bool {
-		var o:Dynamic = LuaProps.resolveObject(funk, obj);
-		if (o == null || o.animation == null) {
-			LuaShared.luaTrace('addAnimationByIndices: Object ' + obj + ' doesn\'t exist!', false, false, FlxColor.RED);
-			return false;
-		}
-		var arr:Array<Int> = [];
-		if (Std.isOfType(indices, String)) {
-			var parts:Array<String> = Std.string(indices).split(',');
-			for (ps in parts) {
-				var pn:Null<Int> = Std.parseInt(StringTools.trim(ps));
-				if (pn != null) arr.push(pn);
-			}
-		} else if (Std.isOfType(indices, Array)) {
-			var src:Array<Dynamic> = indices;
-			for (v in src) arr.push(Std.int(Std.parseFloat(Std.string(v))));
-		}
-		if (arr.length == 0) {
-			LuaShared.luaTrace('addAnimationByIndices: no valid indices for animation ' + name, false, false, FlxColor.YELLOW);
-			return false;
-		}
-		if (prefix == null) o.animation.add(name, arr, framerate, loop);
-		else o.animation.addByIndices(name, prefix, arr, '', framerate, loop);
-		if (o.animation.curAnim == null) o.animation.play(name, true);
-		return true;
-	}
 
 	public static function getVarInArray(funk:Dynamic, instance:Dynamic, variable:String, ?allowMaps:Bool = false):Dynamic {
 		if (instance == null) return null;
