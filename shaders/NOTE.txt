@@ -1,0 +1,23 @@
+These shaders are not mine
+
+Credit to all the persons who made them
+
+https://github.com/notweuz
+
+https://github.com/Experience-Monks/glsl-fast-gaussian-blur/blob/master/5.glsl
+
+https://www.shadertoy.com/view/Xltfzj
+
+https://github.com/amilajack/gaussian-blur/blob/master/src/9.glsl
+
+https://www.shadertoy.com/view/lsKSWR
+
+https://www.shadertoy.com/view/td2XDz
+
+https://www.shadertoy.com/view/MlfBWr
+
+https://www.shadertoy.com/view/WtGXDD
+
+https://www.shadertoy.com/view/XsVSRd
+
+https://github.com/TheZoroForce240
